@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Song Form Builder</title>
+<meta property="og:title" content="Song Form Builder">
+<meta property="og:description" content="Song Form Builder">
+<meta property="og:type" content="website">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<style>
+@media print {
+  .no-print { display: none !important; }
+  body { background-color: white !important; padding: 0 !important; }
+  .print-container { box-shadow: none !important; border: none !important; width: 100% !important; max-width: none !important; padding: 0 !important; }
+  #song-title { font-size: 24pt !important; margin-bottom: 10px !important; border: none !important; }
+  #final-map-container { background-color: #f8fafc !important; color: black !important; border: 2px solid #e2e8f0 !important; page-break-inside: avoid; }
+  .roadmap-card { background-color: white !important; border: 1px solid #cbd5e1 !important; color: black !important; break-inside: avoid; }
+}
+input[type="range"] { accent-color: #3b82f6; }
+.sortable-ghost { opacity: 0.3; background: #dbeafe; border: 2px dashed #3b82f6; }
+.chord-font { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+</style>
+</head>
+<body class="bg-slate-50 p-4 md:p-10 text-slate-900 font-sans">
+<div class="max-w-6xl mx-auto bg-white p-6 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-200 print-container">
+
+  <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 border-b border-slate-100 pb-8 gap-6">
+    <div class="flex-grow w-full">
+      <input type="text" id="song-title" placeholder="SONG TITLE"
+        class="text-4xl font-black w-full border-none focus:ring-0 placeholder:text-slate-200 uppercase tracking-tight"
+        oninput="renderOutput()">
+      <div class="no-print mt-2 flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+        <span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+        Song Form Builder
+        <span id="total-bars-badge" class="hidden bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full text-[10px] font-black normal-case tracking-normal"></span>
+      </div>
+    </div>
+    <div class="no-print flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+      <input type="file" id="file-input" class="hidden" accept=".songform" onchange="importSongForm(event)">
+      <button onclick="document.getElementById('file-input').click()" class="bg-slate-800 hover:bg-slate-700 text-white rounded-2xl shadow-lg px-6 h-[50px] text-xs font-black transition-all active:scale-95">Open</button>
+      <button onclick="exportSongForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-lg px-6 h-[50px] text-xs font-black transition-all active:scale-95">Save</button>
+      <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg px-6 h-[50px] text-xs font-black transition-all active:scale-95">Print PDF</button>
+    </div>
+  </header>
+
+  <div class="no-print mb-10 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 shadow-inner">
+    <div id="quick-buttons" class="flex flex-wrap gap-2 mb-6"></div>
+    <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-slate-200/50">
+      <input type="text" id="custom-name-input" placeholder="New Section Name"
+        class="text-xs font-bold border-2 border-slate-200 rounded-xl px-4 py-2 bg-white w-48 outline-none focus:border-blue-400"
+        onkeydown="if(event.key==='Enter') createNewSectionType()">
+      <input type="color" id="custom-color-input" value="#334155" class="w-10 h-10 border-none bg-transparent cursor-pointer">
+      <button onclick="createNewSectionType()" class="bg-slate-700 hover:bg-blue-600 text-white px-5 py-2 rounded-xl font-black text-xs shadow-md transition-all">+ Add</button>
+    </div>
+  </div>
+
+  <div id="song-list" class="space-y-4 mb-14 no-print min-h-[50px]"></div>
+
+  <div id="final-map-container" class="bg-slate-900 rounded-[3rem] p-8 md:p-12 border border-slate-800 shadow-2xl">
+    <div id="chord-timeline" class="mb-12 overflow-x-auto pb-4 border-b border-slate-800/50">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="bg-blue-500 w-1.5 h-4 rounded-full"></span>
+        <h4 class="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">Chord Summary (Unique Sections)</h4>
+      </div>
+      <div id="chord-display-area" class="flex flex-wrap gap-y-6"></div>
+    </div>
+    <div id="final-map" class="flex flex-wrap gap-4 md:gap-5 justify-start"></div>
+  </div>
+
+</div>
+
+<script>
+let sections = [];
+let sortableInstance = null;
+let renderDebounceTimer = null;
+
+const dynEmojis = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣"];
+const methods = ["Strum","Arp","P.M","Diamond","Riff","Mute"];
+
+let sectionTypes = [
+  {name:'Intro',color:'#64748b'},{name:'Verse',color:'#3b82f6'},
+  {name:'Pre-Cho',color:'#818cf8'},{name:'Chorus',color:'#ef4444'},
+  {name:'Post-Cho',color:'#f472b6'},{name:'Inter',color:'#10b981'},
+  {name:'Solo',color:'#a855f7'},{name:'Bridge',color:'#f59e0b'},
+  {name:'Outro',color:'#cbd5e1'}
+];
+
+window.onload = () => { renderQuickButtons(); initSortable(); renderList(); };
+
+function initSortable() {
+  if (sortableInstance) { sortableInstance.destroy(); }
+  sortableInstance = Sortable.create(document.getElementById('song-list'), {
+    animation: 150,
+    handle: '.drag-handle',
+    ghostClass: 'sortable-ghost',
+    filter: 'input, select, button, textarea',
+    preventOnFilter: false,
+    onEnd: () => {
+      const newSections = [];
+      document.getElementById('song-list').querySelectorAll('[data-id]').forEach(item => {
+        const id = parseFloat(item.getAttribute('data-id'));
+        const found = sections.find(s => s.id === id);
+        if (found) newSections.push(found);
+      });
+      sections = newSections;
+      renderOutput();
+    }
+  });
+}
+
+function renderQuickButtons() {
+  document.getElementById('quick-buttons').innerHTML = sectionTypes.map(t =>
+    `<button onclick="addSectionInstance('${t.name.replace(/'/g,"\\'")}','${t.color}')"
+      class="px-5 py-2.5 text-white rounded-xl font-bold hover:scale-105 transition-all shadow-md text-xs"
+      style="background-color:${t.color}">${t.name}</button>`
+  ).join('');
+}
+
+function createNewSectionType() {
+  const ni = document.getElementById('custom-name-input');
+  const name = ni.value.trim();
+  const color = document.getElementById('custom-color-input').value;
+  if (name && !sectionTypes.find(t => t.name === name)) {
+    sectionTypes.push({ name, color });
+    renderQuickButtons();
+    ni.value = '';
+  }
+}
+
+function addSectionInstance(name, color) {
+  sections.push({ id: Date.now() + Math.random(), name, color, method:'Strum', customMethod:'', bars:8, dynamic:3, memo:'', chords:'' });
+  renderAll();
+}
+
+function duplicateSection(id) {
+  const idx = sections.findIndex(s => s.id == id);
+  if (idx === -1) return;
+  const clone = { ...sections[idx], id: Date.now() + Math.random() };
+  sections.splice(idx + 1, 0, clone);
+  renderAll();
+}
+
+function updateValue(id, field, value, redrawList = false) {
+  const s = sections.find(x => x.id == id);
+  if (!s) return;
+  if (field === 'bars') value = Math.max(1, parseInt(value) || 1);
+  s[field] = value;
+  if (field === 'name') {
+    const t = sectionTypes.find(x => x.name === value);
+    if (t) s.color = t.color;
+    redrawList = true;
+  }
+  if (field === 'method') redrawList = true;
+  if (field === 'dynamic') {
+    const el = document.getElementById(`dyn-val-${id}`);
+    if (el) el.innerText = value;
+  }
+  if (redrawList) renderAll();
+  else scheduleOutputRender();
+}
+
+function scheduleOutputRender() {
+  clearTimeout(renderDebounceTimer);
+  renderDebounceTimer = setTimeout(renderOutput, 80);
+}
+
+function renderAll() {
+  renderList();
+  renderOutput();
+  initSortable();
+}
+
+function renderList() {
+  const container = document.getElementById('song-list');
+
+  if (sections.length === 0) {
+    container.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-16 text-slate-300 select-none pointer-events-none">
+        <span style="font-size:48px" class="mb-3">♩</span>
+        <span class="text-sm font-bold uppercase tracking-widest">위 버튼을 눌러 섹션을 추가하세요</span>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = sections.map((s, idx) => `
+    <div data-id="${s.id}" class="p-5 border rounded-[2rem] bg-white shadow-sm flex flex-col gap-4 border-l-[16px]" style="border-left-color:${s.color}">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="drag-handle text-slate-200 text-2xl cursor-grab active:cursor-grabbing px-2 select-none">☰</div>
+        <span class="text-[10px] font-black text-slate-300 w-5 text-center select-none">${idx + 1}</span>
+        <select onchange="updateValue('${s.id}','name',this.value,true)"
+          class="text-sm font-black border-2 rounded-xl px-3 py-2 bg-slate-50 border-slate-100 outline-none w-32">
+          ${sectionTypes.map(t => `<option value="${t.name}" ${s.name===t.name?'selected':''}>${t.name}</option>`).join('')}
+        </select>
+        <div class="flex items-center gap-2">
+          <select onchange="updateValue('${s.id}','method',this.value,true)"
+            class="text-xs font-bold border-2 rounded-xl px-3 py-2 bg-slate-50 border-slate-100 outline-none">
+            ${methods.map(m => `<option value="${m}" ${s.method===m?'selected':''}>${m}</option>`).join('')}
+            <option value="Custom" ${s.method==='Custom'?'selected':''}>etc...</option>
+          </select>
+          ${s.method==='Custom' ? `<input type="text" placeholder="입력..." value="${s.customMethod}"
+            oninput="updateValue('${s.id}','customMethod',this.value,false)"
+            class="text-xs font-bold border-2 border-blue-200 rounded-xl px-3 py-2 w-24 outline-none">` : ''}
+        </div>
+        <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 font-black text-blue-600">
+          <span class="text-[9px] text-slate-400 uppercase">Bars</span>
+          <input type="number" value="${s.bars}" min="1"
+            onchange="updateValue('${s.id}','bars',this.value,true)"
+            class="w-8 text-center bg-transparent outline-none">
+        </div>
+        <div class="flex items-center gap-3 flex-grow px-4 bg-slate-50/50 py-1 rounded-2xl border border-slate-100/50">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Energy</span>
+          <input type="range" min="1" max="5" step="1" value="${s.dynamic}"
+            oninput="updateValue('${s.id}','dynamic',this.value,false)"
+            class="flex-grow h-1.5 bg-slate-200 appearance-none cursor-pointer">
+          <span id="dyn-val-${s.id}" class="text-xs font-black text-blue-600 w-4">${s.dynamic}</span>
+        </div>
+        <button onclick="duplicateSection(${s.id})" title="복제" class="text-slate-300 hover:text-blue-400 font-black px-2 text-lg">⧉</button>
+        <button onclick="sections=sections.filter(x=>x.id!=${s.id});renderAll();" class="text-slate-300 hover:text-red-500 font-black px-2 text-xl">✕</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <input type="text" placeholder="Chord Progression(optional)" value="${s.chords}"
+          oninput="updateValue('${s.id}','chords',this.value,false)"
+          class="chord-font w-full text-sm p-3 bg-blue-50/30 border border-blue-100 rounded-xl outline-none focus:bg-white focus:border-blue-400 font-bold text-blue-900 transition-all">
+        <input type="text" placeholder="Additional Notes..." value="${s.memo}"
+          oninput="updateValue('${s.id}','memo',this.value,false)"
+          class="w-full text-xs p-3 bg-slate-50 border border-slate-100 rounded-xl outline-none italic focus:bg-white transition-all">
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderOutput() {
+  const out = document.getElementById('final-map');
+  const chordArea = document.getElementById('chord-display-area');
+  const badge = document.getElementById('total-bars-badge');
+
+  if (sections.length === 0) {
+    out.innerHTML = "<span class='text-slate-700 italic w-full text-center py-10 opacity-40 uppercase tracking-widest'>Empty</span>";
+    chordArea.innerHTML = '';
+    badge.classList.add('hidden');
+    return;
+  }
+
+  const totalBars = sections.reduce((acc, s) => acc + (parseInt(s.bars) || 0), 0);
+  badge.textContent = `총 ${totalBars} bars`;
+  badge.classList.remove('hidden');
+
+  const seen = new Set();
+  chordArea.innerHTML = sections.filter(s => {
+    // 1. 이미 표시된 섹션 이름인지 확인 (중복 제거)
+    // 2. 동시에 s.chords가 비어있지 않은지 확인 (공백 제거 후 검사)
+    if (seen.has(s.name) || !s.chords.trim()) return false;
+    seen.add(s.name); 
+    return true;
+  }).map(s => `
+    <div class="flex flex-col border-l border-slate-800 px-4 min-w-[140px] mb-2">
+      <span class="text-[9px] font-black mb-1 uppercase tracking-tighter" style="color:${s.color}">${s.name}</span>
+      <span class="chord-font text-blue-400 text-sm font-bold tracking-wider">${s.chords}</span>
+    </div>
+  `).join('');
+
+  out.innerHTML = sections.map((s, idx) => {
+    const displayMethod = s.method === 'Custom' ? (s.customMethod || '...') : s.method;
+    return `
+      <div class="flex items-center gap-3">
+        <div class="roadmap-card bg-slate-800 p-5 rounded-[2.5rem] border border-slate-700 flex flex-col min-w-[150px] shadow-lg relative" style="border-top:6px solid ${s.color}">
+          <div class="flex justify-between items-end mb-1">
+            <b class="text-base font-black tracking-tighter uppercase" style="color:${s.color}">${s.name}</b>
+            <span class="text-yellow-400 text-xl font-black">${s.bars}</span>
+          </div>
+          <div class="flex justify-between items-center mt-2">
+            <span class="text-blue-400/50 text-[10px] font-black tracking-widest uppercase truncate max-w-[70px]">${displayMethod}</span>
+            <span class="text-base">${dynEmojis[s.dynamic] || ''}</span>
+          </div>
+          ${s.memo ? `<div class="text-[9px] text-slate-500 italic mt-3 border-t border-slate-700/50 pt-2 break-all line-clamp-1"># ${s.memo}</div>` : ''}
+        </div>
+        ${idx < sections.length - 1 ? '<div class="text-slate-700 font-black text-xl no-print">→</div>' : ''}
+      </div>`;
+  }).join('');
+}
+
+function exportSongForm() {
+  const title = document.getElementById('song-title').value || 'Untitled';
+  const blob = new Blob([JSON.stringify({ title, sections, sectionTypes }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${title}.songform`;
+  a.click();
+}
+
+function importSongForm(event) {
+  const f = event.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      document.getElementById('song-title').value = d.title || '';
+      sections = d.sections || [];
+      sectionTypes = d.sectionTypes || sectionTypes;
+      renderQuickButtons();
+      renderAll();
+    } catch {
+      alert('파일을 읽을 수 없습니다.');
+    }
+    event.target.value = '';
+  };
+  r.readAsText(f);
+}
+</script>
+</body>
+</html>
