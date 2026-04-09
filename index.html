@@ -15,6 +15,7 @@
   body { background-color: white !important; padding: 0 !important; }
   .print-container { box-shadow: none !important; border: none !important; width: 100% !important; max-width: none !important; padding: 0 !important; }
   #song-title { font-size: 24pt !important; margin-bottom: 10px !important; border: none !important; }
+  #song-meta { font-size: 12pt !important; }
   #final-map-container { background-color: #f8fafc !important; color: black !important; border: 2px solid #e2e8f0 !important; page-break-inside: avoid; }
   .roadmap-card { background-color: white !important; border: 1px solid #cbd5e1 !important; color: black !important; break-inside: avoid; }
 }
@@ -25,31 +26,63 @@ input[type="range"] { accent-color: #3b82f6; }
 /* Dark Mode */
 body.dark { background-color: #0f172a; color: #e2e8f0; }
 body.dark .print-container { background-color: #1e293b; border-color: #334155; }
-body.dark #song-title { color: #f1f5f9; }
-body.dark .bg-slate-50\/50 { background-color: #1e293b !important; }
-body.dark #song-list > div { background-color: #1e293b !important; border-color: #334155; }
+body.dark #song-title { color: #f1f5f9; background: transparent; }
+body.dark #song-meta input { background-color: transparent !important; color: #94a3b8 !important; border-color: #334155 !important; }
+body.dark .section-panel { background-color: #1e293b !important; border-color: #334155 !important; }
+body.dark .section-card { background-color: #0f172a !important; border-color: #334155 !important; }
 body.dark select,
 body.dark input[type="text"],
 body.dark input[type="number"] { background-color: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
-body.dark .bg-slate-50 { background-color: #1e293b !important; }
-body.dark .bg-slate-50\/50 { background-color: #1e293b !important; }
-body.dark .border-slate-100 { border-color: #334155 !important; }
-body.dark .border-slate-200\/50 { border-color: #334155 !important; }
-body.dark .text-slate-300 { color: #94a3b8 !important; }
-body.dark .text-slate-400 { color: #94a3b8 !important; }
-body.dark .border-b { border-color: #334155 !important; }
-body.dark .bg-blue-50\/30 { background-color: #1e293b !important; }
-body.dark .text-blue-900 { color: #93c5fd !important; }
+body.dark .inner-field { background-color: #1e293b !important; border-color: #334155 !important; }
+body.dark .drag-handle { color: #475569 !important; }
+body.dark .header-border { border-color: #334155 !important; }
+body.dark .empty-state { color: #475569 !important; }
+body.dark #custom-name-input { background-color: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+body.dark .type-tag { background-color: transparent !important; }
+body.dark .chord-input { background-color: #1e293b !important; border-color: #334155 !important; color: #93c5fd !important; }
+body.dark .memo-input { background-color: #1e293b !important; border-color: #334155 !important; color: #94a3b8 !important; }
+body.dark #toast { background-color: #1e293b; color: #e2e8f0; border-color: #475569; }
+body.dark .meta-field { border-color: #334155 !important; }
+body.dark .undo-btn { background-color: #1e293b !important; color: #64748b !important; }
+body.dark .undo-btn:not(:disabled):hover { background-color: #334155 !important; }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: white; color: #1e293b; border: 1px solid #e2e8f0;
+  padding: 10px 24px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12); opacity: 0; pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s; z-index: 9999;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body class="bg-slate-50 p-4 md:p-10 text-slate-900 font-sans">
+<div id="toast"></div>
 <div class="max-w-6xl mx-auto bg-white p-6 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-200 print-container">
 
-  <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 border-b border-slate-100 pb-8 gap-6">
+  <header class="header-border flex flex-col md:flex-row justify-between items-start md:items-center mb-10 border-b border-slate-100 pb-8 gap-6">
     <div class="flex-grow w-full">
       <input type="text" id="song-title" placeholder="SONG TITLE"
-        class="text-4xl font-black w-full border-none focus:ring-0 placeholder:text-slate-200 uppercase tracking-tight"
+        class="text-4xl font-black w-full border-none focus:ring-0 placeholder:text-slate-200 uppercase tracking-tight bg-transparent"
         oninput="renderOutput()">
+      <div id="song-meta" class="no-print mt-3 flex items-center gap-2 flex-wrap">
+        <div class="meta-field flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-1.5">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Key</span>
+          <input type="text" id="meta-key" placeholder="C maj" maxlength="10"
+            class="text-xs font-bold bg-transparent outline-none w-14 text-slate-600 placeholder:text-slate-300">
+        </div>
+        <div class="meta-field flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-1.5">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">BPM</span>
+          <input type="number" id="meta-bpm" placeholder="120" min="1" max="999"
+            class="text-xs font-bold bg-transparent outline-none w-12 text-slate-600 placeholder:text-slate-300">
+        </div>
+        <div class="meta-field flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-1.5">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Time</span>
+          <input type="text" id="meta-time" placeholder="4/4" maxlength="5"
+            class="text-xs font-bold bg-transparent outline-none w-10 text-slate-600 placeholder:text-slate-300">
+        </div>
+      </div>
       <div class="no-print mt-2 flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
         <span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
         Song Form Builder
@@ -61,12 +94,14 @@ body.dark .text-blue-900 { color: #93c5fd !important; }
       <button onclick="document.getElementById('file-input').click()" class="bg-slate-800 hover:bg-slate-700 text-white rounded-2xl shadow-lg px-6 h-[50px] text-xs font-black transition-all active:scale-95">Open</button>
       <button onclick="exportSongForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-lg px-6 h-[50px] text-xs font-black transition-all active:scale-95">Save</button>
       <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg px-6 h-[50px] text-xs font-black transition-all active:scale-95">Print PDF</button>
+      <button onclick="undoAction()" id="undo-btn" title="실행 취소 (Ctrl+Z)"
+        class="undo-btn bg-slate-100 hover:bg-slate-200 text-slate-400 rounded-2xl shadow-lg px-4 h-[50px] text-base font-black transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed" disabled>↩</button>
       <button onclick="toggleDarkMode()" id="dark-toggle" class="bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-2xl shadow-lg px-4 h-[50px] text-lg transition-all active:scale-95" title="다크 모드 전환">🌙</button>
     </div>
   </header>
 
-  <div class="no-print mb-10 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 shadow-inner">
-    <div id="quick-buttons" class="flex flex-wrap gap-2 mb-6"></div>
+  <div class="no-print section-panel mb-10 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 shadow-inner">
+    <div id="quick-buttons" class="flex flex-wrap gap-2 mb-4"></div>
     <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-slate-200/50">
       <input type="text" id="custom-name-input" placeholder="New Section Name"
         class="text-xs font-bold border-2 border-slate-200 rounded-xl px-4 py-2 bg-white w-48 outline-none focus:border-blue-400"
@@ -95,6 +130,8 @@ body.dark .text-blue-900 { color: #93c5fd !important; }
 let sections = [];
 let sortableInstance = null;
 let renderDebounceTimer = null;
+let undoStack = [];
+let isDragging = false;
 
 const dynEmojis = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣"];
 const methods = ["Strum","Arp","P.M","Diamond","Riff","Mute"];
@@ -106,41 +143,102 @@ let sectionTypes = [
   {name:'Solo',color:'#a855f7'},{name:'Bridge',color:'#f59e0b'},
   {name:'Outro',color:'#cbd5e1'}
 ];
+const builtinNames = new Set(sectionTypes.map(t => t.name));
 
-window.onload = () => { renderQuickButtons(); initSortable(); renderList(); };
+window.onload = () => {
+  if (localStorage.getItem('sfb-dark') === '1') {
+    document.body.classList.add('dark');
+    document.getElementById('dark-toggle').textContent = '☀️';
+  }
+  renderQuickButtons();
+  initSortable();
+  renderList();
+  document.addEventListener('keydown', handleKeyboard);
+};
 
+/* ── Toast ── */
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ── Dark Mode ── */
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle('dark');
   document.getElementById('dark-toggle').textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('sfb-dark', isDark ? '1' : '0');
 }
 
+/* ── Keyboard ── */
+function handleKeyboard(e) {
+  const tag = document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undoAction(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); exportSongForm(); }
+}
+
+/* ── Undo ── */
+function saveUndo() {
+  undoStack.push(JSON.stringify(sections));
+  if (undoStack.length > 50) undoStack.shift();
+  document.getElementById('undo-btn').disabled = false;
+}
+
+function undoAction() {
+  if (undoStack.length === 0) return;
+  sections = JSON.parse(undoStack.pop());
+  if (undoStack.length === 0) document.getElementById('undo-btn').disabled = true;
+  renderAll();
+  showToast('↩ 실행 취소');
+}
+
+/* ── Sortable ── */
 function initSortable() {
-  if (sortableInstance) { sortableInstance.destroy(); }
+  if (sortableInstance) sortableInstance.destroy();
   sortableInstance = Sortable.create(document.getElementById('song-list'), {
     animation: 150,
     handle: '.drag-handle',
     ghostClass: 'sortable-ghost',
     filter: 'input, select, button, textarea',
     preventOnFilter: false,
+    onStart: () => { isDragging = true; },
     onEnd: () => {
+      isDragging = false;
       const newSections = [];
       document.getElementById('song-list').querySelectorAll('[data-id]').forEach(item => {
         const id = parseFloat(item.getAttribute('data-id'));
         const found = sections.find(s => s.id === id);
         if (found) newSections.push(found);
       });
+      saveUndo();
       sections = newSections;
       renderOutput();
     }
   });
 }
 
+/* ── Section Types ── */
 function renderQuickButtons() {
-  document.getElementById('quick-buttons').innerHTML = sectionTypes.map(t =>
-    `<button onclick="addSectionInstance('${t.name.replace(/'/g,"\\'")}','${t.color}')"
-      class="px-5 py-2.5 text-white rounded-xl font-bold hover:scale-105 transition-all shadow-md text-xs"
-      style="background-color:${t.color}">${t.name}</button>`
-  ).join('');
+  document.getElementById('quick-buttons').innerHTML = sectionTypes.map(t => {
+    const isBuiltin = builtinNames.has(t.name);
+    return `<span class="type-tag inline-flex items-center rounded-xl shadow-md overflow-hidden">
+      <button onclick="addSectionInstance('${t.name.replace(/'/g,"\\'")}','${t.color}')"
+        class="px-4 py-2.5 text-white font-bold hover:opacity-90 transition-all text-xs"
+        style="background-color:${t.color}">${t.name}</button>${isBuiltin ? '' :
+      `<button onclick="deleteSectionType('${t.name.replace(/'/g,"\\'")}')\"
+        class="px-2 py-2.5 text-white/60 hover:text-white hover:bg-red-500 transition-all text-xs font-black leading-none"
+        style="background-color:${t.color}">✕</button>`}
+    </span>`;
+  }).join('');
+}
+
+function deleteSectionType(name) {
+  sectionTypes = sectionTypes.filter(t => t.name !== name);
+  renderQuickButtons();
 }
 
 function createNewSectionType() {
@@ -154,16 +252,25 @@ function createNewSectionType() {
   }
 }
 
+/* ── Sections ── */
 function addSectionInstance(name, color) {
+  saveUndo();
   sections.push({ id: Date.now() + Math.random(), name, color, method:'Strum', customMethod:'', bars:8, dynamic:3, memo:'', chords:'' });
   renderAll();
 }
 
 function duplicateSection(id) {
+  saveUndo();
   const idx = sections.findIndex(s => s.id == id);
   if (idx === -1) return;
   const clone = { ...sections[idx], id: Date.now() + Math.random() };
   sections.splice(idx + 1, 0, clone);
+  renderAll();
+}
+
+function deleteSection(id) {
+  saveUndo();
+  sections = sections.filter(x => x.id != id);
   renderAll();
 }
 
@@ -194,15 +301,15 @@ function scheduleOutputRender() {
 function renderAll() {
   renderList();
   renderOutput();
-  initSortable();
+  if (!isDragging) initSortable();
 }
 
+/* ── List ── */
 function renderList() {
   const container = document.getElementById('song-list');
-
   if (sections.length === 0) {
     container.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-16 text-slate-300 select-none pointer-events-none">
+      <div class="empty-state flex flex-col items-center justify-center py-16 text-slate-300 select-none pointer-events-none">
         <span style="font-size:48px" class="mb-3">♩</span>
         <span class="text-sm font-bold uppercase tracking-widest">위 버튼을 눌러 섹션을 추가하세요</span>
       </div>`;
@@ -210,7 +317,7 @@ function renderList() {
   }
 
   container.innerHTML = sections.map((s, idx) => `
-    <div data-id="${s.id}" class="p-5 border rounded-[2rem] bg-white shadow-sm flex flex-col gap-4 border-l-[16px]" style="border-left-color:${s.color}">
+    <div data-id="${s.id}" class="section-card p-5 border rounded-[2rem] bg-white shadow-sm flex flex-col gap-4 border-l-[16px]" style="border-left-color:${s.color}">
       <div class="flex flex-wrap items-center gap-4">
         <div class="drag-handle text-slate-200 text-2xl cursor-grab active:cursor-grabbing px-2 select-none">☰</div>
         <span class="text-[10px] font-black text-slate-300 w-5 text-center select-none">${idx + 1}</span>
@@ -228,34 +335,35 @@ function renderList() {
             oninput="updateValue('${s.id}','customMethod',this.value,false)"
             class="text-xs font-bold border-2 border-blue-200 rounded-xl px-3 py-2 w-24 outline-none">` : ''}
         </div>
-        <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 font-black text-blue-600">
+        <div class="inner-field flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 font-black text-blue-600">
           <span class="text-[9px] text-slate-400 uppercase">Bars</span>
           <input type="number" value="${s.bars}" min="1"
             onchange="updateValue('${s.id}','bars',this.value,true)"
             class="w-8 text-center bg-transparent outline-none">
         </div>
-        <div class="flex items-center gap-3 flex-grow px-4 bg-slate-50/50 py-1 rounded-2xl border border-slate-100/50">
+        <div class="inner-field flex items-center gap-3 flex-grow px-4 bg-slate-50/50 py-1 rounded-2xl border border-slate-100/50">
           <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Energy</span>
           <input type="range" min="1" max="5" step="1" value="${s.dynamic}"
             oninput="updateValue('${s.id}','dynamic',this.value,false)"
             class="flex-grow h-1.5 bg-slate-200 appearance-none cursor-pointer">
           <span id="dyn-val-${s.id}" class="text-xs font-black text-blue-600 w-4">${s.dynamic}</span>
         </div>
-        <button onclick="duplicateSection(${s.id})" title="복제" class="text-slate-300 hover:text-blue-400 font-black px-2 text-lg">⧉</button>
-        <button onclick="sections=sections.filter(x=>x.id!=${s.id});renderAll();" class="text-slate-300 hover:text-red-500 font-black px-2 text-xl">✕</button>
+        <button onclick="duplicateSection(${s.id})" title="복제" class="text-slate-300 hover:text-blue-400 font-black px-2 text-lg transition-colors">⧉</button>
+        <button onclick="deleteSection(${s.id})" title="삭제" class="text-slate-300 hover:text-red-500 font-black px-2 text-xl transition-colors">✕</button>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <input type="text" placeholder="Chord Progression(optional)" value="${s.chords}"
+        <input type="text" placeholder="Chord Progression (optional)" value="${s.chords}"
           oninput="updateValue('${s.id}','chords',this.value,false)"
-          class="chord-font w-full text-sm p-3 bg-blue-50/30 border border-blue-100 rounded-xl outline-none focus:bg-white focus:border-blue-400 font-bold text-blue-900 transition-all">
+          class="chord-input chord-font w-full text-sm p-3 bg-blue-50/30 border border-blue-100 rounded-xl outline-none focus:border-blue-400 font-bold text-blue-900 transition-all">
         <input type="text" placeholder="Additional Notes..." value="${s.memo}"
           oninput="updateValue('${s.id}','memo',this.value,false)"
-          class="w-full text-xs p-3 bg-slate-50 border border-slate-100 rounded-xl outline-none italic focus:bg-white transition-all">
+          class="memo-input w-full text-xs p-3 bg-slate-50 border border-slate-100 rounded-xl outline-none italic transition-all">
       </div>
     </div>
   `).join('');
 }
 
+/* ── Output ── */
 function renderOutput() {
   const out = document.getElementById('final-map');
   const chordArea = document.getElementById('chord-display-area');
@@ -274,10 +382,8 @@ function renderOutput() {
 
   const seen = new Set();
   chordArea.innerHTML = sections.filter(s => {
-    // 1. 이미 표시된 섹션 이름인지 확인 (중복 제거)
-    // 2. 동시에 s.chords가 비어있지 않은지 확인 (공백 제거 후 검사)
     if (seen.has(s.name) || !s.chords.trim()) return false;
-    seen.add(s.name); 
+    seen.add(s.name);
     return true;
   }).map(s => `
     <div class="flex flex-col border-l border-slate-800 px-4 min-w-[140px] mb-2">
@@ -306,13 +412,20 @@ function renderOutput() {
   }).join('');
 }
 
+/* ── Export / Import ── */
 function exportSongForm() {
   const title = document.getElementById('song-title').value || 'Untitled';
-  const blob = new Blob([JSON.stringify({ title, sections, sectionTypes }, null, 2)], { type: 'application/json' });
+  const meta = {
+    key: document.getElementById('meta-key').value,
+    bpm: document.getElementById('meta-bpm').value,
+    time: document.getElementById('meta-time').value,
+  };
+  const blob = new Blob([JSON.stringify({ title, meta, sections, sectionTypes }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `${title}.songform`;
   a.click();
+  showToast('💾 저장 완료');
 }
 
 function importSongForm(event) {
@@ -323,10 +436,18 @@ function importSongForm(event) {
     try {
       const d = JSON.parse(e.target.result);
       document.getElementById('song-title').value = d.title || '';
+      if (d.meta) {
+        document.getElementById('meta-key').value = d.meta.key || '';
+        document.getElementById('meta-bpm').value = d.meta.bpm || '';
+        document.getElementById('meta-time').value = d.meta.time || '';
+      }
       sections = d.sections || [];
       sectionTypes = d.sectionTypes || sectionTypes;
+      undoStack = [];
+      document.getElementById('undo-btn').disabled = true;
       renderQuickButtons();
       renderAll();
+      showToast('📂 파일 열기 완료');
     } catch {
       alert('파일을 읽을 수 없습니다.');
     }
