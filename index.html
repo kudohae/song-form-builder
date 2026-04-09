@@ -17,28 +17,35 @@
 
   /* ── Print ── */
   @media print {
-    /* 1. 모든 UI 요소 숨기기 */
-    .no-print, 
-    .header-sep > div:not(:first-child), /* 헤더에서 제목 줄 제외한 나머지 숨김 */
-    #song-meta,
+    /* 1. UI 요소 숨기기 */
+    .no-print,
     .app-label,
-    .section-panel, 
-    #song-list, 
+    .section-panel,
+    #song-list,
     #quick-buttons,
     .add-row,
     .tbtn,
     #dark-toggle,
     #toast,
-    #modal-overlay { 
+    #modal-overlay,
+    #chord-timeline { 
       display: none !important; 
     }
 
-    /* 2. 배경 및 레이아웃 강제 초기화 */
+    /* 2. print-only 요소 표시 */
+    .print-only { display: block !important; }
+    .print-only-flex { display: flex !important; }
+
+    /* 3. 페이지 설정 */
+    @page { size: A4; margin: 15mm 15mm 15mm 15mm; }
+
+    /* 4. 기본 레이아웃 */
     body { 
       background: white !important; 
-      color: black !important;
+      color: #111 !important;
       padding: 0 !important; 
       margin: 0 !important;
+      font-size: 10pt !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
@@ -47,63 +54,193 @@
       box-shadow: none !important; 
       border: none !important; 
       max-width: none !important; 
-      padding: 20px !important; 
+      padding: 0 !important; 
       background: white !important;
+      border-radius: 0 !important;
     }
 
-    /* 3. 제목 출력 (글자색 검정 강제) */
+    /* 5. 헤더 영역: 제목 + 메타 한 줄에 */
+    .header-sep {
+      padding: 0 0 10px 0 !important;
+      border-bottom: 2px solid #111 !important;
+      margin-bottom: 12px !important;
+    }
+
+    .header-sep > div {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: baseline !important;
+      gap: 16px !important;
+      flex-wrap: wrap !important;
+    }
+
+    /* 6. 제목 */
     #song-title {
       display: block !important;
       visibility: visible !important;
-      color: #000000 !important; /* 강제 검정색 */
-      font-size: 24pt !important;
+      color: #000 !important;
+      font-size: 22pt !important;
       font-weight: 900 !important;
-      width: 100% !important;
+      width: auto !important;
+      flex-shrink: 0 !important;
       border: none !important;
       background: transparent !important;
-      margin-bottom: 5px !important;
+      margin: 0 !important;
       padding: 0 !important;
+      line-height: 1.1 !important;
       -webkit-appearance: none !important;
-      -moz-appearance: none !important;
       appearance: none !important;
     }
 
-    /* 4. 로드맵 컨테이너 및 내부 요소 색상 반전 */
+    /* 7. 메타 정보 인쇄 표시 */
+    #song-meta {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      align-items: center !important;
+    }
+
+    #song-meta .meta-pill {
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      border: 1px solid #ccc !important;
+      border-radius: 6px !important;
+      padding: 2px 8px !important;
+      background: white !important;
+    }
+
+    #song-meta .meta-pill span {
+      font-size: 7pt !important;
+      font-weight: 900 !important;
+      color: #666 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.1em !important;
+    }
+
+    #song-meta .meta-pill input {
+      font-size: 9pt !important;
+      font-weight: 700 !important;
+      color: #111 !important;
+      width: auto !important;
+      min-width: 30px !important;
+      max-width: 80px !important;
+      background: transparent !important;
+      border: none !important;
+    }
+
+    #total-bars-badge {
+      display: flex !important;
+      font-size: 8pt !important;
+      font-weight: 700 !important;
+      color: #555 !important;
+      background: #f0f0f0 !important;
+      border-radius: 6px !important;
+      padding: 2px 8px !important;
+    }
+
+    /* 8. 로드맵 컨테이너 */
     #final-map-container { 
-      background: transparent !important; 
+      background: white !important; 
       border: none !important; 
       padding: 0 !important;
       margin: 0 !important;
+      border-radius: 0 !important;
     }
 
-    /* 코드 서머리 텍스트 검정색 */
-    #chord-display-area div span {
-      color: #000000 !important;
+    /* 9. Chord Summary 인쇄용 테이블 */
+    #print-chord-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+      font-size: 9pt;
+    }
+    #print-chord-table th {
+      background: #f5f5f5 !important;
+      border: 1px solid #ccc !important;
+      padding: 4px 8px !important;
+      font-size: 7.5pt !important;
+      font-weight: 900 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.08em !important;
+      color: #444 !important;
+      text-align: left !important;
+    }
+    #print-chord-table td {
+      border: 1px solid #ddd !important;
+      padding: 4px 8px !important;
+      vertical-align: middle !important;
+      color: #111 !important;
+    }
+    #print-chord-table .cell-color {
+      width: 10px;
+      padding: 0 !important;
+    }
+    #print-chord-table .cell-chord {
+      font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace !important;
+      font-size: 9pt !important;
+      font-weight: 700 !important;
+      color: #1d4ed8 !important;
     }
 
-    .chord-font {
-      color: #2563eb !important; /* 코드는 약간 푸른색 유지 (인쇄 시 가독성) */
+    /* 10. Flow Map 카드 */
+    #final-map {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 6px !important;
+      align-items: flex-start !important;
     }
 
-    /* 로드맵 카드 스타일 조정 */
     .roadmap-card { 
-      background: white !important; 
-      border: 1.5px solid #000000 !important; 
-      color: black !important;
-      break-inside: avoid;
+      background: white !important;
+      border: 1.5px solid #ccc !important;
+      border-radius: 10px !important;
+      min-width: 90px !important;
+      max-width: 120px !important;
+      break-inside: avoid !important;
+      box-shadow: none !important;
     }
 
-    /* 카드 내 모든 텍스트(섹션명, 마디수 등) 검정색 강제 */
-    .roadmap-card b, 
-    .roadmap-card span, 
-    .roadmap-card div {
-      color: #000000 !important;
+    /* 색상 상단 띠: border-top 인라인 스타일이 유지됨 */
+
+    .roadmap-card b { 
+      font-size: 8pt !important;
+      font-weight: 900 !important;
+      display: block !important;
+      text-transform: uppercase !important;
     }
 
-    /* 화살표 표시 */
+    /* 마디수 */
+    .roadmap-card .text-yellow-400 {
+      color: #111 !important;
+      font-size: 11pt !important;
+      font-weight: 900 !important;
+    }
+
+    /* 주법 */
+    .roadmap-card .text-blue-400\/40 {
+      color: #666 !important;
+      font-size: 7pt !important;
+    }
+
+    /* 메모 */
+    .roadmap-card .text-slate-600 {
+      color: #555 !important;
+      font-size: 7pt !important;
+      border-top: 1px solid #eee !important;
+    }
+
+    /* 에너지 이모지 */
+    .roadmap-card .text-sm {
+      font-size: 9pt !important;
+    }
+
+    /* 화살표 */
     #final-map .text-slate-700 {
-      color: #000000 !important;
+      color: #999 !important;
+      font-size: 12pt !important;
       display: inline-block !important;
+      align-self: center !important;
     }
   }
   
@@ -406,13 +543,27 @@
 
   <!-- Roadmap Output -->
   <div id="final-map-container" class="mx-6 mb-8 md:mx-10 md:mb-10 bg-slate-900 rounded-[2rem] p-8 md:p-10 border border-slate-800">
-    <!-- Chord summary -->
+    <!-- Chord summary (screen only) -->
     <div id="chord-timeline" class="mb-10 overflow-x-auto pb-2 border-b border-slate-800/60">
       <div class="flex items-center gap-2 mb-4">
         <span class="bg-blue-500 w-1 h-3.5 rounded-full"></span>
         <h4 class="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Chord Summary</h4>
       </div>
       <div id="chord-display-area" class="flex flex-wrap gap-x-1 gap-y-4"></div>
+    </div>
+    <!-- Chord summary (print only) -->
+    <div class="print-only" style="display:none; margin-bottom:14px;">
+      <div style="font-size:7.5pt; font-weight:900; text-transform:uppercase; letter-spacing:0.12em; color:#555; margin-bottom:6px;">Chord Summary</div>
+      <table id="print-chord-table">
+        <thead>
+          <tr>
+            <th class="cell-color"></th>
+            <th>Section</th>
+            <th>Chord Progression</th>
+          </tr>
+        </thead>
+        <tbody id="print-chord-tbody"></tbody>
+      </table>
     </div>
     <!-- Flow map -->
     <div id="final-map" class="flex flex-wrap gap-3 md:gap-4 items-start"></div>
@@ -745,6 +896,18 @@ function renderOutput() {
       <span class="chord-font text-blue-400 text-sm font-semibold">${s.chords}</span>
     </div>
   `).join('') : `<span class="text-slate-700 text-[11px] opacity-30 italic">코드를 입력하면 여기에 표시됩니다</span>`;
+
+  // 인쇄용 chord table 업데이트
+  const tbody = document.getElementById('print-chord-tbody');
+  if (tbody) {
+    tbody.innerHTML = chordItems.map(s => `
+      <tr>
+        <td class="cell-color" style="background:${s.color} !important;"></td>
+        <td style="font-weight:800; font-size:9pt;">${s.name}</td>
+        <td class="cell-chord">${s.chords}</td>
+      </tr>
+    `).join('');
+  }
 
   out.innerHTML = sections.map((s, idx) => {
     const displayMethod = s.method === 'Custom' ? (s.customMethod || '…') : s.method;
