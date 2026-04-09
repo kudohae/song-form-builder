@@ -16,8 +16,15 @@
   body { font-family: 'Inter', sans-serif; }
 
   /* ── Print ── */
+  #song-title 요소에 no-print 클래스가 포함되어 있거나, 부모 요소가 숨겨지면서 같이 가려진 것으로 보입니다. PDF 출력 시 제목을 확실하게 표시하려면 @media print 내부에 제목 전용 스타일을 강제로 지정해야 합니다.
+
+아래 코드를 기존의 @media print 부분에 덮어씌우면 제목이 최상단에 뜨고 그 아래로 로드맵이 이어지게 됩니다.
+
+수정된 CSS
+CSS
+  /* ── Print ── */
   @media print {
-    /* 1. 기본 앱 레이아웃 및 UI 숨기기 */
+    /* 1. 불필요한 모든 UI 숨기기 */
     .no-print, 
     .header-sep, 
     .section-panel, 
@@ -25,35 +32,45 @@
     #song-meta, 
     .app-label,
     #quick-buttons,
-    .add-row { 
+    .add-row,
+    .tbtn,
+    #dark-toggle { 
       display: none !important; 
     }
 
-    /* 2. 배경 및 여백 설정 */
+    /* 2. 배경 및 레이아웃 초기화 */
     body { 
       background: white !important; 
       padding: 0 !important; 
       margin: 0 !important;
+      -webkit-print-color-adjust: exact;
     }
 
     .app-shell { 
       box-shadow: none !important; 
       border: none !important; 
       max-width: none !important; 
-      padding: 0 !important; 
+      padding: 20px !important; 
       border-radius: 0 !important; 
     }
 
-    /* 3. 제목 스타일링 (인쇄 시에도 보이도록 유지하거나 위치 조정) */
+    /* 3. 제목 표시 (이 부분이 핵심) */
     #song-title {
       display: block !important;
-      font-size: 32pt !important;
-      margin-bottom: 40px !important;
+      visibility: visible !important;
+      position: relative !important;
+      font-size: 36pt !important;
+      font-weight: 900 !important;
       color: black !important;
+      margin-bottom: 30px !important;
+      border: none !important;
+      width: 100% !important;
+      text-transform: uppercase;
     }
 
-    /* 4. 로드맵 컨테이너 설정 (가장 중요) */
+    /* 4. 로드맵 컨테이너 */
     #final-map-container { 
+      display: block !important;
       background: transparent !important; 
       color: black !important; 
       border: none !important; 
@@ -61,29 +78,23 @@
       margin: 0 !important;
     }
 
-    /* 5. 코드 서머리 및 로드맵 카드 스타일 조정 */
+    /* 5. 세부 요소 가독성 조정 */
     #chord-timeline {
       border-bottom: 2px solid #e2e8f0 !important;
+      margin-bottom: 30px !important;
     }
 
     .roadmap-card { 
       background: white !important; 
       border: 1px solid #cbd5e1 !important; 
-      color: black !important; 
       break-inside: avoid; 
       box-shadow: none !important;
     }
 
-    /* 로드맵 내부 텍스트 색상 강제 지정 (다크모드 상태에서 인쇄할 경우 대비) */
     .roadmap-card b, 
     .roadmap-card span,
     .chord-font {
       color: black !important;
-    }
-    
-    /* 화살표(>) 표시 유지 */
-    #final-map .text-slate-700 {
-      color: #64748b !important;
     }
   }
   
