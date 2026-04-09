@@ -451,7 +451,7 @@
         <!-- Title -->
         <input type="text" id="song-title"
           class="text-4xl md:text-5xl font-black w-full text-slate-900 placeholder:text-slate-200 uppercase tracking-tight leading-none mb-4"
-          placeholder="SONG TITLE" oninput="renderOutput()" autocomplete="off" spellcheck="false">
+          placeholder="SONG TITLE" oninput="renderOutput();syncToStorage()" autocomplete="off" spellcheck="false">
 
         <!-- Meta pills -->
         <div id="song-meta" class="flex flex-wrap gap-2 no-print">
@@ -776,6 +776,19 @@ function renderAll() {
   renderList();
   renderOutput();
   if (!isDragging) initSortable();
+  syncToStorage();
+}
+
+/* ════ localStorage Sync ════ */
+function syncToStorage() {
+  const title = document.getElementById('song-title').value || '';
+  const meta = {
+    key: document.getElementById('meta-key').value,
+    bpm: document.getElementById('meta-bpm').value,
+    time: document.getElementById('meta-time').value,
+  };
+  const payload = { title, meta, sections, sectionTypes, _ts: Date.now() };
+  try { localStorage.setItem('sfb-live', JSON.stringify(payload)); } catch(e) {}
 }
 
 /* ════ List ════ */
