@@ -16,34 +16,31 @@
   body { font-family: 'Inter', sans-serif; }
 
   /* ── Print ── */
-  #song-title 요소에 no-print 클래스가 포함되어 있거나, 부모 요소가 숨겨지면서 같이 가려진 것으로 보입니다. PDF 출력 시 제목을 확실하게 표시하려면 @media print 내부에 제목 전용 스타일을 강제로 지정해야 합니다.
-
-아래 코드를 기존의 @media print 부분에 덮어씌우면 제목이 최상단에 뜨고 그 아래로 로드맵이 이어지게 됩니다.
-
-수정된 CSS
-CSS
-  /* ── Print ── */
   @media print {
-    /* 1. 불필요한 모든 UI 숨기기 */
+    /* 1. 모든 UI 요소 숨기기 */
     .no-print, 
-    .header-sep, 
+    .header-sep > div:not(:first-child), /* 헤더에서 제목 줄 제외한 나머지 숨김 */
+    #song-meta,
+    .app-label,
     .section-panel, 
     #song-list, 
-    #song-meta, 
-    .app-label,
     #quick-buttons,
     .add-row,
     .tbtn,
-    #dark-toggle { 
+    #dark-toggle,
+    #toast,
+    #modal-overlay { 
       display: none !important; 
     }
 
-    /* 2. 배경 및 레이아웃 초기화 */
+    /* 2. 배경 및 레이아웃 강제 초기화 */
     body { 
       background: white !important; 
+      color: black !important;
       padding: 0 !important; 
       margin: 0 !important;
-      -webkit-print-color-adjust: exact;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
 
     .app-shell { 
@@ -51,50 +48,62 @@ CSS
       border: none !important; 
       max-width: none !important; 
       padding: 20px !important; 
-      border-radius: 0 !important; 
+      background: white !important;
     }
 
-    /* 3. 제목 표시 (이 부분이 핵심) */
+    /* 3. 제목 출력 (글자색 검정 강제) */
     #song-title {
       display: block !important;
       visibility: visible !important;
-      position: relative !important;
-      font-size: 36pt !important;
+      color: #000000 !important; /* 강제 검정색 */
+      font-size: 32pt !important;
       font-weight: 900 !important;
-      color: black !important;
-      margin-bottom: 30px !important;
-      border: none !important;
       width: 100% !important;
-      text-transform: uppercase;
+      border: none !important;
+      background: transparent !important;
+      margin-bottom: 20px !important;
+      padding: 0 !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      appearance: none !important;
     }
 
-    /* 4. 로드맵 컨테이너 */
+    /* 4. 로드맵 컨테이너 및 내부 요소 색상 반전 */
     #final-map-container { 
-      display: block !important;
       background: transparent !important; 
-      color: black !important; 
       border: none !important; 
       padding: 0 !important;
       margin: 0 !important;
     }
 
-    /* 5. 세부 요소 가독성 조정 */
-    #chord-timeline {
-      border-bottom: 2px solid #e2e8f0 !important;
-      margin-bottom: 30px !important;
+    /* 코드 서머리 텍스트 검정색 */
+    #chord-display-area div span {
+      color: #000000 !important;
     }
 
+    .chord-font {
+      color: #2563eb !important; /* 코드는 약간 푸른색 유지 (인쇄 시 가독성) */
+    }
+
+    /* 로드맵 카드 스타일 조정 */
     .roadmap-card { 
       background: white !important; 
-      border: 1px solid #cbd5e1 !important; 
-      break-inside: avoid; 
-      box-shadow: none !important;
+      border: 1.5px solid #000000 !important; 
+      color: black !important;
+      break-inside: avoid;
     }
 
+    /* 카드 내 모든 텍스트(섹션명, 마디수 등) 검정색 강제 */
     .roadmap-card b, 
-    .roadmap-card span,
-    .chord-font {
-      color: black !important;
+    .roadmap-card span, 
+    .roadmap-card div {
+      color: #000000 !important;
+    }
+
+    /* 화살표 표시 */
+    #final-map .text-slate-700 {
+      color: #000000 !important;
+      display: inline-block !important;
     }
   }
   
