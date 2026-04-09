@@ -17,14 +17,76 @@
 
   /* ── Print ── */
   @media print {
-    .no-print { display: none !important; }
-    body { background: white !important; padding: 0 !important; }
-    .app-shell { box-shadow: none !important; border: none !important; max-width: none !important; padding: 20px !important; border-radius: 0 !important; }
-    #song-title-display { font-size: 28pt !important; }
-    #final-map-container { background: #f8fafc !important; color: black !important; border: 2px solid #e2e8f0 !important; }
-    .roadmap-card { background: white !important; border: 1px solid #cbd5e1 !important; color: black !important; break-inside: avoid; }
-  }
+    /* 1. 기본 앱 레이아웃 및 UI 숨기기 */
+    .no-print, 
+    .header-sep, 
+    .section-panel, 
+    #song-list, 
+    #song-meta, 
+    .app-label,
+    #quick-buttons,
+    .add-row { 
+      display: none !important; 
+    }
 
+    /* 2. 배경 및 여백 설정 */
+    body { 
+      background: white !important; 
+      padding: 0 !important; 
+      margin: 0 !important;
+    }
+
+    .app-shell { 
+      box-shadow: none !important; 
+      border: none !important; 
+      max-width: none !important; 
+      padding: 0 !important; 
+      border-radius: 0 !important; 
+    }
+
+    /* 3. 제목 스타일링 (인쇄 시에도 보이도록 유지하거나 위치 조정) */
+    #song-title {
+      display: block !important;
+      font-size: 32pt !important;
+      margin-bottom: 40px !important;
+      color: black !important;
+    }
+
+    /* 4. 로드맵 컨테이너 설정 (가장 중요) */
+    #final-map-container { 
+      background: transparent !important; 
+      color: black !important; 
+      border: none !important; 
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    /* 5. 코드 서머리 및 로드맵 카드 스타일 조정 */
+    #chord-timeline {
+      border-bottom: 2px solid #e2e8f0 !important;
+    }
+
+    .roadmap-card { 
+      background: white !important; 
+      border: 1px solid #cbd5e1 !important; 
+      color: black !important; 
+      break-inside: avoid; 
+      box-shadow: none !important;
+    }
+
+    /* 로드맵 내부 텍스트 색상 강제 지정 (다크모드 상태에서 인쇄할 경우 대비) */
+    .roadmap-card b, 
+    .roadmap-card span,
+    .chord-font {
+      color: black !important;
+    }
+    
+    /* 화살표(>) 표시 유지 */
+    #final-map .text-slate-700 {
+      color: #64748b !important;
+    }
+  }
+  
   /* ── Scrollbar ── */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
