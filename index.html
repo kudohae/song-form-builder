@@ -10,121 +10,333 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <style>
-@media print {
-  .no-print { display: none !important; }
-  body { background-color: white !important; padding: 0 !important; }
-  .print-container { box-shadow: none !important; border: none !important; width: 100% !important; max-width: none !important; padding: 0 !important; }
-  #song-title { font-size: 24pt !important; margin-bottom: 10px !important; border: none !important; }
-  #song-meta { font-size: 12pt !important; }
-  #final-map-container { background-color: #f8fafc !important; color: black !important; border: 2px solid #e2e8f0 !important; page-break-inside: avoid; }
-  .roadmap-card { background-color: white !important; border: 1px solid #cbd5e1 !important; color: black !important; break-inside: avoid; }
-}
-input[type="range"] { accent-color: #3b82f6; }
-.sortable-ghost { opacity: 0.3; background: #dbeafe; border: 2px dashed #3b82f6; }
-.chord-font { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  /* ── Fonts & Base ── */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; }
 
-/* Dark Mode */
-body.dark { background-color: #0f172a; color: #e2e8f0; }
-body.dark .print-container { background-color: #1e293b; border-color: #334155; }
-body.dark #song-title { color: #f1f5f9; background: transparent; }
-body.dark #song-meta input { background-color: transparent !important; color: #94a3b8 !important; border-color: #334155 !important; }
-body.dark .section-panel { background-color: #1e293b !important; border-color: #334155 !important; }
-body.dark .section-card { background-color: #0f172a !important; border-color: #334155 !important; }
-body.dark select,
-body.dark input[type="text"],
-body.dark input[type="number"] { background-color: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
-body.dark .inner-field { background-color: #1e293b !important; border-color: #334155 !important; }
-body.dark .drag-handle { color: #475569 !important; }
-body.dark .header-border { border-color: #334155 !important; }
-body.dark .empty-state { color: #475569 !important; }
-body.dark #custom-name-input { background-color: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
-body.dark .type-tag { background-color: transparent !important; }
-body.dark .chord-input { background-color: #1e293b !important; border-color: #334155 !important; color: #93c5fd !important; }
-body.dark .memo-input { background-color: #1e293b !important; border-color: #334155 !important; color: #94a3b8 !important; }
-body.dark #toast { background-color: #1e293b; color: #e2e8f0; border-color: #475569; }
-body.dark .meta-field { border-color: #334155 !important; }
-body.dark .undo-btn { background-color: #1e293b !important; color: #64748b !important; }
-body.dark .undo-btn:not(:disabled):hover { background-color: #334155 !important; }
+  /* ── Print ── */
+  @media print {
+    .no-print { display: none !important; }
+    body { background: white !important; padding: 0 !important; }
+    .app-shell { box-shadow: none !important; border: none !important; max-width: none !important; padding: 20px !important; border-radius: 0 !important; }
+    #song-title-display { font-size: 28pt !important; }
+    #final-map-container { background: #f8fafc !important; color: black !important; border: 2px solid #e2e8f0 !important; }
+    .roadmap-card { background: white !important; border: 1px solid #cbd5e1 !important; color: black !important; break-inside: avoid; }
+  }
 
-/* Toast */
-#toast {
-  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: white; color: #1e293b; border: 1px solid #e2e8f0;
-  padding: 10px 24px; border-radius: 999px; font-size: 12px; font-weight: 700;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12); opacity: 0; pointer-events: none;
-  transition: opacity 0.2s, transform 0.2s; z-index: 9999;
-}
-#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+  body.dark ::-webkit-scrollbar-thumb { background: #334155; }
+
+  /* ── Range ── */
+  input[type="range"] { accent-color: #3b82f6; }
+
+  /* ── Sortable ── */
+  .sortable-ghost { opacity: 0.25; background: #dbeafe !important; border: 2px dashed #3b82f6 !important; }
+
+  /* ── Mono ── */
+  .chord-font { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+
+  /* ── Transitions ── */
+  .section-card { transition: box-shadow 0.15s, transform 0.15s; }
+  .section-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+
+  /* ── Title area: no input chrome ── */
+  #song-title {
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    caret-color: #3b82f6;
+    line-height: 1.1;
+  }
+  #song-title::placeholder { color: #e2e8f0; }
+
+  /* ── Meta pill inputs ── */
+  .meta-pill input { outline: none; background: transparent; }
+  .meta-pill input::placeholder { color: #cbd5e1; }
+
+  /* ── Toolbar button base ── */
+  .tbtn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 40px; border-radius: 12px; font-size: 12px; font-weight: 700;
+    padding: 0 16px; cursor: pointer; border: none;
+    transition: background 0.15s, transform 0.1s, opacity 0.15s;
+    white-space: nowrap;
+  }
+  .tbtn:active { transform: scale(0.95); }
+  .tbtn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .tbtn-ghost { background: transparent; border: 1.5px solid #e2e8f0; color: #64748b; }
+  .tbtn-ghost:hover:not(:disabled) { background: #f8fafc; border-color: #cbd5e1; }
+  .tbtn-dark-ghost { background: transparent; border: 1.5px solid #334155; color: #94a3b8; }
+  .tbtn-dark-ghost:hover:not(:disabled) { background: #1e293b; }
+  .tbtn-primary { background: #3b82f6; color: white; }
+  .tbtn-primary:hover { background: #2563eb; }
+  .tbtn-success { background: #10b981; color: white; }
+  .tbtn-success:hover { background: #059669; }
+  .tbtn-neutral { background: #1e293b; color: white; }
+  .tbtn-neutral:hover { background: #0f172a; }
+
+  /* ── Section add button ── */
+  .sec-btn {
+    padding: 6px 14px; border-radius: 10px; font-size: 11px; font-weight: 700;
+    color: white; border: none; cursor: pointer; letter-spacing: 0.02em;
+    transition: filter 0.15s, transform 0.1s;
+  }
+  .sec-btn:hover { filter: brightness(1.15); }
+  .sec-btn:active { transform: scale(0.95); }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: #1e293b; color: #f1f5f9;
+    padding: 9px 20px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s; z-index: 9999;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  body.dark #toast { background: #f1f5f9; color: #1e293b; }
+
+  /* ── Modal ── */
+  #modal-overlay {
+    position: fixed; inset: 0; z-index: 8000;
+    background: rgba(15,23,42,0.55); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  #modal-overlay.visible { opacity: 1; }
+  #modal-box {
+    background: white; border-radius: 28px;
+    padding: 40px; max-width: 480px; width: calc(100% - 48px);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.2);
+    transform: translateY(16px) scale(0.97);
+    transition: transform 0.25s, opacity 0.25s;
+    opacity: 0;
+  }
+  #modal-overlay.visible #modal-box { transform: translateY(0) scale(1); opacity: 1; }
+  body.dark #modal-box { background: #1e293b; }
+
+  /* ── Dark Mode ── */
+  body.dark { background-color: #0a0f1e; color: #e2e8f0; }
+  body.dark .app-shell { background: #111827; border-color: #1f2937; }
+  body.dark .header-sep { border-color: #1f2937; }
+  body.dark #song-title { color: #f1f5f9; }
+  body.dark #song-title::placeholder { color: #1e293b; }
+  body.dark .meta-pill { border-color: #334155 !important; }
+  body.dark .meta-pill input { color: #94a3b8 !important; }
+  body.dark .meta-pill span { color: #475569 !important; }
+  body.dark .badge { background: #1e293b !important; color: #64748b !important; }
+  body.dark .app-label { color: #334155; }
+  body.dark .section-panel { background: #0f172a !important; border-color: #1f2937 !important; }
+  body.dark .add-row { border-color: #1f2937 !important; }
+  body.dark #custom-name-input { background: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; }
+  body.dark #custom-name-input::placeholder { color: #475569; }
+  body.dark .section-card { background: #0f172a !important; border-color: #1f2937 !important; }
+  body.dark .section-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+  body.dark .drag-handle { color: #1e293b !important; }
+  body.dark .drag-handle:hover { color: #334155 !important; }
+  body.dark .idx-num { color: #1e293b !important; }
+  body.dark select { background: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+  body.dark .inner-pill { background: #1e293b !important; border-color: #334155 !important; }
+  body.dark .inner-pill span { color: #475569; }
+  body.dark .inner-pill input { color: #93c5fd; }
+  body.dark .energy-pill { background: #1e293b !important; border-color: #334155 !important; }
+  body.dark .energy-pill span { color: #475569; }
+  body.dark .chord-input { background: #1a2540 !important; border-color: #2d3f60 !important; color: #93c5fd !important; }
+  body.dark .chord-input::placeholder { color: #2d3f60; }
+  body.dark .memo-input { background: #1e293b !important; border-color: #334155 !important; color: #64748b !important; }
+  body.dark .memo-input::placeholder { color: #334155; }
+  body.dark .empty-state { color: #1e293b !important; }
+  body.dark .custom-input-text { color: #e2e8f0 !important; border-color: #334155 !important; background: #1e293b !important; }
 </style>
 </head>
-<body class="bg-slate-50 p-4 md:p-10 text-slate-900 font-sans">
+
+<body class="bg-slate-50 min-h-screen p-4 md:p-8 lg:p-12">
+
+<!-- Toast -->
 <div id="toast"></div>
-<div class="max-w-6xl mx-auto bg-white p-6 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-200 print-container">
 
-  <header class="header-border flex flex-col md:flex-row justify-between items-start md:items-center mb-10 border-b border-slate-100 pb-8 gap-6">
-    <div class="flex-grow w-full">
-      <input type="text" id="song-title" placeholder="SONG TITLE"
-        class="text-4xl font-black w-full border-none focus:ring-0 placeholder:text-slate-200 uppercase tracking-tight bg-transparent"
-        oninput="renderOutput()">
-      <div id="song-meta" class="no-print mt-3 flex items-center gap-2 flex-wrap">
-        <div class="meta-field flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-1.5">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Key</span>
-          <input type="text" id="meta-key" placeholder="C maj" maxlength="10"
-            class="text-xs font-bold bg-transparent outline-none w-14 text-slate-600 placeholder:text-slate-300">
-        </div>
-        <div class="meta-field flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-1.5">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">BPM</span>
-          <input type="number" id="meta-bpm" placeholder="120" min="1" max="999"
-            class="text-xs font-bold bg-transparent outline-none w-12 text-slate-600 placeholder:text-slate-300">
-        </div>
-        <div class="meta-field flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-1.5">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Time</span>
-          <input type="text" id="meta-time" placeholder="4/4" maxlength="5"
-            class="text-xs font-bold bg-transparent outline-none w-10 text-slate-600 placeholder:text-slate-300">
-        </div>
-      </div>
-      <div class="no-print mt-2 flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-        <span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-        Song Form Builder
-        <span id="total-bars-badge" class="hidden bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full text-[10px] font-black normal-case tracking-normal"></span>
+<!-- Onboarding Modal -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white text-lg font-black">♩</div>
+      <div>
+        <h2 class="text-lg font-black text-slate-900 dark-title">Song Form Builder</h2>
+        <p class="text-xs text-slate-400 font-medium">시작 가이드</p>
       </div>
     </div>
-    <div class="no-print flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-      <input type="file" id="file-input" class="hidden" accept=".songform" onchange="importSongForm(event)">
-      <button onclick="document.getElementById('file-input').click()" class="bg-slate-800 hover:bg-slate-700 text-white rounded-2xl shadow-lg px-6 h-[50px] text-xs font-black transition-all active:scale-95">Open</button>
-      <button onclick="exportSongForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-lg px-6 h-[50px] text-xs font-black transition-all active:scale-95">Save</button>
-      <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg px-6 h-[50px] text-xs font-black transition-all active:scale-95">Print PDF</button>
-      <button onclick="undoAction()" id="undo-btn" title="실행 취소 (Ctrl+Z)"
-        class="undo-btn bg-slate-100 hover:bg-slate-200 text-slate-400 rounded-2xl shadow-lg px-4 h-[50px] text-base font-black transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed" disabled>↩</button>
-      <button onclick="toggleDarkMode()" id="dark-toggle" class="bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-2xl shadow-lg px-4 h-[50px] text-lg transition-all active:scale-95" title="다크 모드 전환">🌙</button>
+    <div class="space-y-4 mb-8">
+      <div class="flex gap-4 items-start">
+        <div class="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-black flex-shrink-0 mt-0.5">1</div>
+        <div>
+          <p class="text-sm font-bold text-slate-700 mb-0.5">곡 정보 입력</p>
+          <p class="text-xs text-slate-400 leading-relaxed">상단에 곡 제목, Key, BPM, 박자를 입력하세요.</p>
+        </div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <div class="w-7 h-7 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xs font-black flex-shrink-0 mt-0.5">2</div>
+        <div>
+          <p class="text-sm font-bold text-slate-700 mb-0.5">섹션 추가</p>
+          <p class="text-xs text-slate-400 leading-relaxed">색상 버튼을 클릭해 Intro, Verse, Chorus 등을 추가하세요. 커스텀 섹션도 만들 수 있어요.</p>
+        </div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <div class="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs font-black flex-shrink-0 mt-0.5">3</div>
+        <div>
+          <p class="text-sm font-bold text-slate-700 mb-0.5">편집 & 정렬</p>
+          <p class="text-xs text-slate-400 leading-relaxed">각 섹션의 주법, 마디 수, 에너지를 설정하고 <strong>☰</strong> 핸들을 드래그해 순서를 바꾸세요.</p>
+        </div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <div class="w-7 h-7 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xs font-black flex-shrink-0 mt-0.5">4</div>
+        <div>
+          <p class="text-sm font-bold text-slate-700 mb-0.5">저장 & 출력</p>
+          <p class="text-xs text-slate-400 leading-relaxed"><strong>Save</strong>로 파일 저장, <strong>PDF</strong>로 인쇄하세요. <kbd class="bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">Ctrl+S</kbd> 단축키도 지원해요.</p>
+        </div>
+      </div>
     </div>
-  </header>
-
-  <div class="no-print section-panel mb-10 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 shadow-inner">
-    <div id="quick-buttons" class="flex flex-wrap gap-2 mb-4"></div>
-    <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-slate-200/50">
-      <input type="text" id="custom-name-input" placeholder="New Section Name"
-        class="text-xs font-bold border-2 border-slate-200 rounded-xl px-4 py-2 bg-white w-48 outline-none focus:border-blue-400"
-        onkeydown="if(event.key==='Enter') createNewSectionType()">
-      <input type="color" id="custom-color-input" value="#334155" class="w-10 h-10 border-none bg-transparent cursor-pointer">
-      <button onclick="createNewSectionType()" class="bg-slate-700 hover:bg-blue-600 text-white px-5 py-2 rounded-xl font-black text-xs shadow-md transition-all">+ Add</button>
+    <div class="flex items-center gap-3">
+      <label class="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none flex-1">
+        <input type="checkbox" id="modal-no-show" class="rounded">
+        다시 보지 않기
+      </label>
+      <button onclick="closeModal()" class="tbtn tbtn-primary px-8">시작하기 →</button>
     </div>
   </div>
-
-  <div id="song-list" class="space-y-4 mb-14 no-print min-h-[50px]"></div>
-
-  <div id="final-map-container" class="bg-slate-900 rounded-[3rem] p-8 md:p-12 border border-slate-800 shadow-2xl">
-    <div id="chord-timeline" class="mb-12 overflow-x-auto pb-4 border-b border-slate-800/50">
-      <div class="flex items-center gap-2 mb-4">
-        <span class="bg-blue-500 w-1.5 h-4 rounded-full"></span>
-        <h4 class="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">Chord Summary</h4>
-      </div>
-      <div id="chord-display-area" class="flex flex-wrap gap-y-6"></div>
-    </div>
-    <div id="final-map" class="flex flex-wrap gap-4 md:gap-5 justify-start"></div>
-  </div>
-
 </div>
+
+<!-- App Shell -->
+<div class="app-shell max-w-6xl mx-auto bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
+
+  <!-- Header -->
+  <div class="px-8 md:px-12 pt-10 pb-8 border-b border-slate-100 header-sep">
+
+    <!-- Top bar: title left, toolbar right -->
+    <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-start md:items-end">
+
+      <!-- Title + Meta -->
+      <div class="flex-1 min-w-0">
+        <!-- App label -->
+        <div class="app-label flex items-center gap-2 text-[10px] font-bold text-slate-300 uppercase tracking-[0.25em] mb-3 no-print">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse inline-block"></span>
+          Song Form Builder
+        </div>
+
+        <!-- Title -->
+        <input type="text" id="song-title"
+          class="text-4xl md:text-5xl font-black w-full text-slate-900 placeholder:text-slate-200 uppercase tracking-tight leading-none mb-4"
+          placeholder="SONG TITLE" oninput="renderOutput()" autocomplete="off" spellcheck="false">
+
+        <!-- Meta pills -->
+        <div id="song-meta" class="flex flex-wrap gap-2 no-print">
+          <div class="meta-pill flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-1.5 hover:border-slate-300 transition-colors">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Key</span>
+            <input type="text" id="meta-key" placeholder="C maj" maxlength="10"
+              class="text-xs font-semibold text-slate-600 w-14">
+          </div>
+          <div class="meta-pill flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-1.5 hover:border-slate-300 transition-colors">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">BPM</span>
+            <input type="number" id="meta-bpm" placeholder="120" min="1" max="999"
+              class="text-xs font-semibold text-slate-600 w-12">
+          </div>
+          <div class="meta-pill flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-1.5 hover:border-slate-300 transition-colors">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Time</span>
+            <input type="text" id="meta-time" placeholder="4/4" maxlength="5"
+              class="text-xs font-semibold text-slate-600 w-10">
+          </div>
+          <span id="total-bars-badge" class="hidden badge items-center bg-slate-100 text-slate-500 px-3 py-1.5 rounded-xl text-[11px] font-bold"></span>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="no-print flex items-center gap-2 flex-wrap md:flex-nowrap flex-shrink-0">
+        <input type="file" id="file-input" class="hidden" accept=".songform" onchange="importSongForm(event)">
+
+        <!-- File group -->
+        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-2xl p-1">
+          <button onclick="document.getElementById('file-input').click()"
+            class="tbtn tbtn-ghost border-0 text-slate-600 hover:bg-white hover:shadow-sm" title="파일 열기">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v2"/><path d="M3 17l3-3 3 3 3-3 3 3"/></svg>
+            Open
+          </button>
+          <button onclick="exportSongForm()"
+            class="tbtn tbtn-ghost border-0 text-emerald-600 hover:bg-white hover:shadow-sm" title="저장 (Ctrl+S)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save
+          </button>
+          <button onclick="window.print()"
+            class="tbtn tbtn-ghost border-0 text-blue-600 hover:bg-white hover:shadow-sm" title="PDF 출력">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            PDF
+          </button>
+        </div>
+
+        <!-- Utility group -->
+        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-2xl p-1">
+          <button onclick="undoAction()" id="undo-btn" title="실행 취소 (Ctrl+Z)"
+            class="tbtn tbtn-ghost border-0 text-slate-500 hover:bg-white hover:shadow-sm" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
+            Undo
+          </button>
+          <button onclick="toggleDarkMode()" id="dark-toggle" title="다크 모드"
+            class="tbtn tbtn-ghost border-0 text-slate-500 hover:bg-white hover:shadow-sm w-[40px] px-0">
+            🌙
+          </button>
+          <button onclick="openModal()" title="도움말"
+            class="tbtn tbtn-ghost border-0 text-slate-500 hover:bg-white hover:shadow-sm w-[40px] px-0 text-base">
+            ?
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Palette -->
+  <div class="no-print section-panel px-8 md:px-12 py-6 bg-slate-50/60 border-b border-slate-100">
+    <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">섹션 추가</p>
+    <div id="quick-buttons" class="flex flex-wrap gap-2 mb-4"></div>
+    <!-- Custom type row -->
+    <div class="add-row flex flex-wrap items-center gap-2 pt-4 border-t border-slate-100">
+      <input type="text" id="custom-name-input" placeholder="새 섹션 이름"
+        class="text-xs font-semibold border border-slate-200 rounded-xl px-3 py-2 bg-white w-40 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+        onkeydown="if(event.key==='Enter') createNewSectionType()">
+      <div class="relative">
+        <input type="color" id="custom-color-input" value="#334155"
+          class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
+        <div id="color-preview" class="w-9 h-9 rounded-xl border-2 border-white shadow-md cursor-pointer" style="background:#334155"></div>
+      </div>
+      <button onclick="createNewSectionType()"
+        class="tbtn tbtn-neutral text-xs">+ 추가</button>
+    </div>
+  </div>
+
+  <!-- Section List -->
+  <div class="px-8 md:px-12 py-8">
+    <div id="song-list" class="space-y-3 min-h-[60px]"></div>
+  </div>
+
+  <!-- Roadmap Output -->
+  <div id="final-map-container" class="mx-6 mb-8 md:mx-10 md:mb-10 bg-slate-900 rounded-[2rem] p-8 md:p-10 border border-slate-800">
+    <!-- Chord summary -->
+    <div id="chord-timeline" class="mb-10 overflow-x-auto pb-2 border-b border-slate-800/60">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="bg-blue-500 w-1 h-3.5 rounded-full"></span>
+        <h4 class="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Chord Summary</h4>
+      </div>
+      <div id="chord-display-area" class="flex flex-wrap gap-x-1 gap-y-4"></div>
+    </div>
+    <!-- Flow map -->
+    <div id="final-map" class="flex flex-wrap gap-3 md:gap-4 items-start"></div>
+  </div>
+
+</div><!-- /app-shell -->
 
 <script>
 let sections = [];
@@ -141,66 +353,95 @@ let sectionTypes = [
   {name:'Pre-Cho',color:'#818cf8'},{name:'Chorus',color:'#ef4444'},
   {name:'Post-Cho',color:'#f472b6'},{name:'Inter',color:'#10b981'},
   {name:'Solo',color:'#a855f7'},{name:'Bridge',color:'#f59e0b'},
-  {name:'Outro',color:'#cbd5e1'}
+  {name:'Outro',color:'#94a3b8'}
 ];
 const builtinNames = new Set(sectionTypes.map(t => t.name));
 
+/* ════ Init ════ */
 window.onload = () => {
-  if (localStorage.getItem('sfb-dark') === '1') {
-    document.body.classList.add('dark');
-    document.getElementById('dark-toggle').textContent = '☀️';
-  }
+  // Dark mode
+  if (localStorage.getItem('sfb-dark') === '1') applyDark(true);
+
+  // Color preview sync
+  const colorInput = document.getElementById('custom-color-input');
+  const preview = document.getElementById('color-preview');
+  colorInput.addEventListener('input', () => { preview.style.background = colorInput.value; });
+
   renderQuickButtons();
   initSortable();
   renderList();
   document.addEventListener('keydown', handleKeyboard);
+
+  // Modal
+  if (localStorage.getItem('sfb-onboarded') !== '1') {
+    setTimeout(() => openModal(), 300);
+  }
 };
 
-/* ── Toast ── */
+/* ════ Modal ════ */
+function openModal() {
+  const o = document.getElementById('modal-overlay');
+  o.style.display = 'flex';
+  requestAnimationFrame(() => o.classList.add('visible'));
+}
+function closeModal() {
+  if (document.getElementById('modal-no-show').checked) {
+    localStorage.setItem('sfb-onboarded', '1');
+  }
+  const o = document.getElementById('modal-overlay');
+  o.classList.remove('visible');
+  setTimeout(() => o.style.display = 'none', 220);
+}
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+/* ════ Toast ════ */
 let toastTimer = null;
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-/* ── Dark Mode ── */
+/* ════ Dark Mode ════ */
+function applyDark(on) {
+  document.body.classList.toggle('dark', on);
+  document.getElementById('dark-toggle').textContent = on ? '☀️' : '🌙';
+}
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle('dark');
   document.getElementById('dark-toggle').textContent = isDark ? '☀️' : '🌙';
   localStorage.setItem('sfb-dark', isDark ? '1' : '0');
 }
 
-/* ── Keyboard ── */
+/* ════ Keyboard ════ */
 function handleKeyboard(e) {
-  const tag = document.activeElement.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undoAction(); }
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); exportSongForm(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undoAction(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); exportSongForm(); return; }
 }
 
-/* ── Undo ── */
+/* ════ Undo ════ */
 function saveUndo() {
   undoStack.push(JSON.stringify(sections));
   if (undoStack.length > 50) undoStack.shift();
   document.getElementById('undo-btn').disabled = false;
 }
-
 function undoAction() {
-  if (undoStack.length === 0) return;
+  if (!undoStack.length) return;
   sections = JSON.parse(undoStack.pop());
-  if (undoStack.length === 0) document.getElementById('undo-btn').disabled = true;
+  if (!undoStack.length) document.getElementById('undo-btn').disabled = true;
   renderAll();
   showToast('↩ 실행 취소');
 }
 
-/* ── Sortable ── */
+/* ════ Sortable ════ */
 function initSortable() {
   if (sortableInstance) sortableInstance.destroy();
   sortableInstance = Sortable.create(document.getElementById('song-list'), {
-    animation: 150,
+    animation: 180,
     handle: '.drag-handle',
     ghostClass: 'sortable-ghost',
     filter: 'input, select, button, textarea',
@@ -208,30 +449,30 @@ function initSortable() {
     onStart: () => { isDragging = true; },
     onEnd: () => {
       isDragging = false;
-      const newSections = [];
-      document.getElementById('song-list').querySelectorAll('[data-id]').forEach(item => {
-        const id = parseFloat(item.getAttribute('data-id'));
+      const newSecs = [];
+      document.getElementById('song-list').querySelectorAll('[data-id]').forEach(el => {
+        const id = parseFloat(el.dataset.id);
         const found = sections.find(s => s.id === id);
-        if (found) newSections.push(found);
+        if (found) newSecs.push(found);
       });
       saveUndo();
-      sections = newSections;
+      sections = newSecs;
       renderOutput();
     }
   });
 }
 
-/* ── Section Types ── */
+/* ════ Section Types ════ */
 function renderQuickButtons() {
   document.getElementById('quick-buttons').innerHTML = sectionTypes.map(t => {
     const isBuiltin = builtinNames.has(t.name);
-    return `<span class="type-tag inline-flex items-center rounded-xl shadow-md overflow-hidden">
-      <button onclick="addSectionInstance('${t.name.replace(/'/g,"\\'")}','${t.color}')"
-        class="px-4 py-2.5 text-white font-bold hover:opacity-90 transition-all text-xs"
-        style="background-color:${t.color}">${t.name}</button>${isBuiltin ? '' :
-      `<button onclick="deleteSectionType('${t.name.replace(/'/g,"\\'")}')\"
-        class="px-2 py-2.5 text-white/60 hover:text-white hover:bg-red-500 transition-all text-xs font-black leading-none"
-        style="background-color:${t.color}">✕</button>`}
+    const safeName = t.name.replace(/'/g, "\\'");
+    return `<span class="inline-flex items-center rounded-xl overflow-hidden shadow-sm" style="box-shadow:0 2px 8px ${t.color}33">
+      <button class="sec-btn" style="background:${t.color}" onclick="addSectionInstance('${safeName}','${t.color}')">${t.name}</button>${
+      isBuiltin ? '' :
+      `<button onclick="deleteSectionType('${safeName}')"
+        class="h-full px-2 text-white/50 hover:text-white hover:bg-red-500 transition-all text-xs font-black"
+        style="background:${t.color}dd" title="삭제">✕</button>`}
     </span>`;
   }).join('');
 }
@@ -245,17 +486,18 @@ function createNewSectionType() {
   const ni = document.getElementById('custom-name-input');
   const name = ni.value.trim();
   const color = document.getElementById('custom-color-input').value;
-  if (name && !sectionTypes.find(t => t.name === name)) {
-    sectionTypes.push({ name, color });
-    renderQuickButtons();
-    ni.value = '';
-  }
+  if (!name) return;
+  if (sectionTypes.find(t => t.name === name)) { showToast('⚠️ 이미 존재하는 이름'); return; }
+  sectionTypes.push({ name, color });
+  renderQuickButtons();
+  ni.value = '';
+  showToast(`✅ "${name}" 추가됨`);
 }
 
-/* ── Sections ── */
+/* ════ Sections ════ */
 function addSectionInstance(name, color) {
   saveUndo();
-  sections.push({ id: Date.now() + Math.random(), name, color, method:'Strum', customMethod:'', bars:8, dynamic:3, memo:'', chords:'' });
+  sections.push({ id: Date.now() + Math.random(), name, color, method: 'Strum', customMethod: '', bars: 8, dynamic: 3, memo: '', chords: '' });
   renderAll();
 }
 
@@ -263,9 +505,9 @@ function duplicateSection(id) {
   saveUndo();
   const idx = sections.findIndex(s => s.id == id);
   if (idx === -1) return;
-  const clone = { ...sections[idx], id: Date.now() + Math.random() };
-  sections.splice(idx + 1, 0, clone);
+  sections.splice(idx + 1, 0, { ...sections[idx], id: Date.now() + Math.random() });
   renderAll();
+  showToast('⧉ 섹션 복제됨');
 }
 
 function deleteSection(id) {
@@ -287,10 +529,9 @@ function updateValue(id, field, value, redrawList = false) {
   if (field === 'method') redrawList = true;
   if (field === 'dynamic') {
     const el = document.getElementById(`dyn-val-${id}`);
-    if (el) el.innerText = value;
+    if (el) el.textContent = value;
   }
-  if (redrawList) renderAll();
-  else scheduleOutputRender();
+  redrawList ? renderAll() : scheduleOutputRender();
 }
 
 function scheduleOutputRender() {
@@ -304,115 +545,149 @@ function renderAll() {
   if (!isDragging) initSortable();
 }
 
-/* ── List ── */
+/* ════ List ════ */
 function renderList() {
   const container = document.getElementById('song-list');
-  if (sections.length === 0) {
+  if (!sections.length) {
     container.innerHTML = `
-      <div class="empty-state flex flex-col items-center justify-center py-16 text-slate-300 select-none pointer-events-none">
-        <span style="font-size:48px" class="mb-3">♩</span>
-        <span class="text-sm font-bold uppercase tracking-widest">위 버튼을 눌러 섹션을 추가하세요</span>
+      <div class="empty-state flex flex-col items-center justify-center py-20 text-slate-200 select-none pointer-events-none gap-3">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+        <span class="text-sm font-bold uppercase tracking-widest opacity-50">섹션을 추가해 시작하세요</span>
       </div>`;
     return;
   }
 
   container.innerHTML = sections.map((s, idx) => `
-    <div data-id="${s.id}" class="section-card p-5 border rounded-[2rem] bg-white shadow-sm flex flex-col gap-4 border-l-[16px]" style="border-left-color:${s.color}">
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="drag-handle text-slate-200 text-2xl cursor-grab active:cursor-grabbing px-2 select-none">☰</div>
-        <span class="text-[10px] font-black text-slate-300 w-5 text-center select-none">${idx + 1}</span>
-        <select onchange="updateValue('${s.id}','name',this.value,true)"
-          class="text-sm font-black border-2 rounded-xl px-3 py-2 bg-slate-50 border-slate-100 outline-none w-32">
-          ${sectionTypes.map(t => `<option value="${t.name}" ${s.name===t.name?'selected':''}>${t.name}</option>`).join('')}
-        </select>
-        <div class="flex items-center gap-2">
-          <select onchange="updateValue('${s.id}','method',this.value,true)"
-            class="text-xs font-bold border-2 rounded-xl px-3 py-2 bg-slate-50 border-slate-100 outline-none">
-            ${methods.map(m => `<option value="${m}" ${s.method===m?'selected':''}>${m}</option>`).join('')}
-            <option value="Custom" ${s.method==='Custom'?'selected':''}>etc...</option>
-          </select>
-          ${s.method==='Custom' ? `<input type="text" placeholder="입력..." value="${s.customMethod}"
-            oninput="updateValue('${s.id}','customMethod',this.value,false)"
-            class="text-xs font-bold border-2 border-blue-200 rounded-xl px-3 py-2 w-24 outline-none">` : ''}
+    <div data-id="${s.id}"
+      class="section-card bg-white border border-slate-100 rounded-2xl overflow-hidden"
+      style="border-left: 5px solid ${s.color}">
+      <div class="p-4 flex flex-wrap items-center gap-3">
+
+        <!-- Drag + Index -->
+        <div class="drag-handle text-slate-200 hover:text-slate-400 cursor-grab active:cursor-grabbing select-none transition-colors" title="드래그하여 순서 변경">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
         </div>
-        <div class="inner-field flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 font-black text-blue-600">
-          <span class="text-[9px] text-slate-400 uppercase">Bars</span>
+        <span class="idx-num text-[10px] font-black text-slate-300 w-4 text-center tabular-nums">${idx + 1}</span>
+
+        <!-- Color dot + Section name -->
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${s.color}"></span>
+          <select onchange="updateValue('${s.id}','name',this.value,true)"
+            class="text-sm font-bold border border-slate-200 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all">
+            ${sectionTypes.map(t => `<option value="${t.name}" ${s.name===t.name?'selected':''}>${t.name}</option>`).join('')}
+          </select>
+        </div>
+
+        <!-- Method -->
+        <select onchange="updateValue('${s.id}','method',this.value,true)"
+          class="text-xs font-semibold border border-slate-200 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-blue-400 transition-all">
+          ${methods.map(m => `<option ${s.method===m?'selected':''}>${m}</option>`).join('')}
+          <option value="Custom" ${s.method==='Custom'?'selected':''}>Custom…</option>
+        </select>
+        ${s.method==='Custom' ? `<input type="text" placeholder="주법 입력" value="${s.customMethod}"
+          oninput="updateValue('${s.id}','customMethod',this.value)"
+          class="custom-input-text text-xs font-semibold border border-slate-200 rounded-xl px-3 py-1.5 w-28 outline-none focus:border-blue-400">` : ''}
+
+        <!-- Bars -->
+        <div class="inner-pill flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Bars</span>
           <input type="number" value="${s.bars}" min="1"
             onchange="updateValue('${s.id}','bars',this.value,true)"
-            class="w-8 text-center bg-transparent outline-none">
+            class="w-9 text-center bg-transparent outline-none text-sm font-black text-blue-600 tabular-nums">
         </div>
-        <div class="inner-field flex items-center gap-3 flex-grow px-4 bg-slate-50/50 py-1 rounded-2xl border border-slate-100/50">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Energy</span>
+
+        <!-- Energy -->
+        <div class="energy-pill flex items-center gap-3 flex-grow min-w-[140px] bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider flex-shrink-0">Energy</span>
           <input type="range" min="1" max="5" step="1" value="${s.dynamic}"
-            oninput="updateValue('${s.id}','dynamic',this.value,false)"
-            class="flex-grow h-1.5 bg-slate-200 appearance-none cursor-pointer">
-          <span id="dyn-val-${s.id}" class="text-xs font-black text-blue-600 w-4">${s.dynamic}</span>
+            oninput="updateValue('${s.id}','dynamic',this.value)"
+            class="flex-grow h-1.5 bg-slate-200 appearance-none rounded-full cursor-pointer">
+          <span id="dyn-val-${s.id}" class="text-xs font-black text-blue-600 w-4 text-right tabular-nums">${s.dynamic}</span>
         </div>
-        <button onclick="duplicateSection(${s.id})" title="복제" class="text-slate-300 hover:text-blue-400 font-black px-2 text-lg transition-colors">⧉</button>
-        <button onclick="deleteSection(${s.id})" title="삭제" class="text-slate-300 hover:text-red-500 font-black px-2 text-xl transition-colors">✕</button>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-1 ml-auto">
+          <button onclick="duplicateSection(${s.id})" title="복제"
+            class="w-8 h-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-blue-500 hover:bg-blue-50 transition-all">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+          <button onclick="deleteSection(${s.id})" title="삭제"
+            class="w-8 h-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <input type="text" placeholder="Chord Progression (optional)" value="${s.chords}"
-          oninput="updateValue('${s.id}','chords',this.value,false)"
-          class="chord-input chord-font w-full text-sm p-3 bg-blue-50/30 border border-blue-100 rounded-xl outline-none focus:border-blue-400 font-bold text-blue-900 transition-all">
-        <input type="text" placeholder="Additional Notes..." value="${s.memo}"
-          oninput="updateValue('${s.id}','memo',this.value,false)"
-          class="memo-input w-full text-xs p-3 bg-slate-50 border border-slate-100 rounded-xl outline-none italic transition-all">
+
+      <!-- Chord + Memo row -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 px-4 pb-4">
+        <input type="text" placeholder="Chord Progression  (예: Cmaj7 – Am7 – F – G)" value="${s.chords}"
+          oninput="updateValue('${s.id}','chords',this.value)"
+          class="chord-input chord-font w-full text-sm px-3 py-2.5 bg-blue-50/40 border border-blue-100/80 rounded-xl outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 font-semibold text-blue-800 transition-all placeholder:text-blue-200">
+        <input type="text" placeholder="메모…" value="${s.memo}"
+          oninput="updateValue('${s.id}','memo',this.value)"
+          class="memo-input w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none italic text-slate-500 transition-all placeholder:text-slate-300">
       </div>
     </div>
   `).join('');
 }
 
-/* ── Output ── */
+/* ════ Output ════ */
 function renderOutput() {
   const out = document.getElementById('final-map');
   const chordArea = document.getElementById('chord-display-area');
   const badge = document.getElementById('total-bars-badge');
 
-  if (sections.length === 0) {
-    out.innerHTML = "<span class='text-slate-700 italic w-full text-center py-10 opacity-40 uppercase tracking-widest'>Empty</span>";
+  if (!sections.length) {
+    out.innerHTML = `<span class='text-slate-700 italic w-full text-center py-10 opacity-30 text-xs uppercase tracking-widest font-bold'>섹션을 추가하면 여기에 로드맵이 표시됩니다</span>`;
     chordArea.innerHTML = '';
     badge.classList.add('hidden');
+    badge.classList.remove('flex');
     return;
   }
 
   const totalBars = sections.reduce((acc, s) => acc + (parseInt(s.bars) || 0), 0);
   badge.textContent = `총 ${totalBars} bars`;
   badge.classList.remove('hidden');
+  badge.classList.add('flex');
 
   const seen = new Set();
-  chordArea.innerHTML = sections.filter(s => {
+  const chordItems = sections.filter(s => {
     if (seen.has(s.name) || !s.chords.trim()) return false;
-    seen.add(s.name);
-    return true;
-  }).map(s => `
-    <div class="flex flex-col border-l border-slate-800 px-4 min-w-[140px] mb-2">
-      <span class="text-[9px] font-black mb-1 uppercase tracking-tighter" style="color:${s.color}">${s.name}</span>
-      <span class="chord-font text-blue-400 text-sm font-bold tracking-wider">${s.chords}</span>
+    seen.add(s.name); return true;
+  });
+  chordArea.innerHTML = chordItems.length ? chordItems.map(s => `
+    <div class="flex flex-col border-l-2 px-4 min-w-[130px] mb-2" style="border-color:${s.color}40">
+      <span class="text-[9px] font-black mb-1 uppercase tracking-wider" style="color:${s.color}">${s.name}</span>
+      <span class="chord-font text-blue-400 text-sm font-semibold">${s.chords}</span>
     </div>
-  `).join('');
+  `).join('') : `<span class="text-slate-700 text-[11px] opacity-30 italic">코드를 입력하면 여기에 표시됩니다</span>`;
 
   out.innerHTML = sections.map((s, idx) => {
-    const displayMethod = s.method === 'Custom' ? (s.customMethod || '...') : s.method;
+    const displayMethod = s.method === 'Custom' ? (s.customMethod || '…') : s.method;
     return `
-      <div class="flex items-center gap-3">
-        <div class="roadmap-card bg-slate-800 p-5 rounded-[2.5rem] border border-slate-700 flex flex-col min-w-[150px] shadow-lg relative" style="border-top:6px solid ${s.color}">
-          <div class="flex justify-between items-end mb-1">
-            <b class="text-base font-black tracking-tighter uppercase" style="color:${s.color}">${s.name}</b>
-            <span class="text-yellow-400 text-xl font-black">${s.bars}</span>
+      <div class="flex items-center gap-2">
+        <div class="roadmap-card group bg-slate-800 hover:bg-slate-750 rounded-[1.5rem] border border-slate-700/60 flex flex-col min-w-[130px] shadow-lg relative overflow-hidden transition-all hover:scale-[1.02] cursor-default"
+          style="border-top:4px solid ${s.color}">
+          <div class="p-4">
+            <div class="flex justify-between items-start mb-2">
+              <b class="text-sm font-black tracking-tight uppercase leading-tight" style="color:${s.color}">${s.name}</b>
+              <span class="text-yellow-400 text-base font-black ml-2 tabular-nums">${s.bars}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-blue-400/40 text-[9px] font-black tracking-widest uppercase truncate max-w-[65px]">${displayMethod}</span>
+              <span class="text-sm">${dynEmojis[s.dynamic] || ''}</span>
+            </div>
+            ${s.memo ? `<div class="text-[9px] text-slate-600 italic mt-2.5 pt-2 border-t border-slate-700/40 break-all line-clamp-1">${s.memo}</div>` : ''}
           </div>
-          <div class="flex justify-between items-center mt-2">
-            <span class="text-blue-400/50 text-[10px] font-black tracking-widest uppercase truncate max-w-[70px]">${displayMethod}</span>
-            <span class="text-base">${dynEmojis[s.dynamic] || ''}</span>
-          </div>
-          ${s.memo ? `<div class="text-[9px] text-slate-500 italic mt-3 border-t border-slate-700/50 pt-2 break-all line-clamp-1"># ${s.memo}</div>` : ''}
         </div>
-        ${idx < sections.length - 1 ? '<div class="text-slate-700 font-black text-xl no-print">→</div>' : ''}
+        ${idx < sections.length - 1 ? `<div class="text-slate-700 font-black text-base no-print flex-shrink-0">›</div>` : ''}
       </div>`;
   }).join('');
 }
 
-/* ── Export / Import ── */
+/* ════ Export / Import ════ */
 function exportSongForm() {
   const title = document.getElementById('song-title').value || 'Untitled';
   const meta = {
@@ -447,10 +722,8 @@ function importSongForm(event) {
       document.getElementById('undo-btn').disabled = true;
       renderQuickButtons();
       renderAll();
-      showToast('📂 파일 열기 완료');
-    } catch {
-      alert('파일을 읽을 수 없습니다.');
-    }
+      showToast('📂 불러오기 완료');
+    } catch { alert('파일을 읽을 수 없습니다.'); }
     event.target.value = '';
   };
   r.readAsText(f);
